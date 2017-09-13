@@ -8,7 +8,8 @@ import "OpenController.sol";
 contract OpenControllerFactory is PrivateServiceRegistry {
     function createProxy() public returns (address) {
       Proxy proxy = new Proxy();
-      proxy.transfer(new OpenController(proxy));
+      OpenController controller = new OpenController(proxy);
+      proxy.transfer(address(controller));
       register(proxy);
       return address(proxy);
     }

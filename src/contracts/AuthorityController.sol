@@ -18,7 +18,7 @@ contract AuthorityController is Controller, MembershipRegistry {
 
   modifier onlyAuthority() { require(msg.sender == authority); _; }
 
-  function AuthorityController(address _proxy, address[] _members, uint256 _minimumQuorum, uint256 _required, address _authority) {
+  function AuthorityController(address _proxy, address[] _members, uint256 _minimumQuorum, uint256 _required, address _authority) public {
     for (uint m = 0; m < _members.length; m++)
       addMember(_members[m]);
 
@@ -28,7 +28,7 @@ contract AuthorityController is Controller, MembershipRegistry {
     setProxy(_proxy);
   }
 
-  function changeVariables(uint256 _required, uint256 _minimumQuorum) onlyProxy {
+  function changeVariables(uint256 _required, uint256 _minimumQuorum) public onlyProxy {
     required = _required;
     minimumQuorum = _minimumQuorum;
   }
@@ -45,7 +45,7 @@ contract AuthorityController is Controller, MembershipRegistry {
       return isMember(_sender) && hasWon(_sender, _proposalID);
   }
 
-  function votingWeightOf(address _sender, uint256 _proposalID, uint256 _index, uint256 _data) public constant returns (uint256)  {
+  function votingWeightOf(address _sender, uint256 _proposalID, uint256 _index, bytes32 _data) public constant returns (uint256)  {
     if (isMember(_sender))
       return 1;
   }
