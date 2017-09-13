@@ -47,7 +47,7 @@ library HelperMethods {
             }
 
             // set the length
-            mstore(data, sub(mc, data))
+            mstore(data, sub(mc, add(data, 0x20)))
 
             // set the free-memory pointer to the right address
             mstore(0x40, mc)
@@ -65,5 +65,24 @@ library HelperMethods {
 
             return(sub(_bytes32Array, 0x20), add(length, 0x40))
         }
+    }
+
+    function concatBytes(bytes _preBytes, bytes _postBytes) internal constant returns (bytes) {
+        assembly {
+            let mc := mload(_preBytes)
+            let postlength := mload(_postBytes)
+            mstore(_preBytes, add(postlength, mc))
+            
+            mc := add(mc, _preBytes)
+            
+            for {} lt(_postBytes, postlength) {
+                mc := add(mc, 0x20)
+                _postBytes := add(_postBytes, 0x20)
+            } {
+                mstore(mc, mload(_postBytes))
+            }
+        }
+        
+        return _preBytes;
     }
 }
