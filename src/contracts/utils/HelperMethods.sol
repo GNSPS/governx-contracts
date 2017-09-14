@@ -33,8 +33,6 @@ library HelperMethods {
             }
 
             let cdlength := mload(_calldata)
-            //mstore(mc, cdlength)
-            //mc := add(mc, 0x20)
             _calldata := add(_calldata, 0x20)
 
             cdlength := add(mc, cdlength)
@@ -48,6 +46,7 @@ library HelperMethods {
 
             // set the length
             mstore(data, sub(mc, add(data, 0x20)))
+            mstore(add(data, 0x20), sub(mc, data))
 
             // set the free-memory pointer to the right address
             mstore(0x40, mc)
