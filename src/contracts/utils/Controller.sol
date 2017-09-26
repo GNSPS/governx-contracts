@@ -18,6 +18,32 @@ contract Controller is IController, ProxyBased, Proposable, DefaultRules {
         proposals[proposalID].data = _data;
     }
 
+    function addProposalData(uint256 _proposalID, bytes _data) public payable transferFunds isMoment(numProposals) shouldPropose returns (uint proposalID) {
+        bytes memory data = proposals[_proposalID].data;
+
+        assembly {
+            let mc := add(data, add(mload(data), 0x20))
+            
+            let length := add(mload(data), mload(_data))
+
+            mstore(data, length)
+            
+            let end := add(add(data, 0x20), length)
+
+            for { } lt(mc, end) {
+                mc := add(mc, 0x20)
+            } {
+                _data := add(_data, 0x20)
+                mstore(mc, mload(_data))
+            }
+            
+            // set the free-memory pointer to the right address
+            mstore(0x40, end)
+        }
+        
+        proposals[_proposalID].data = data;
+    }
+
     function vote(uint256 _proposalID, bytes32[] _data) public payable transferFunds isMoment(_proposalID) shouldVote(_proposalID) {
         proposals[_proposalID].votes[proposals[_proposalID].moments.length] = _data;
         for(uint256 i; i < _data.length; i++)
