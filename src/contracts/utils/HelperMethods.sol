@@ -8,50 +8,61 @@ library HelperMethods {
         } else {
             functionID = bytes4(sha3(_functionSig));
         }
-
+        
         bytes memory data;
-
+        
         assembly {
             let mc := data
-
-            //leave space for the length later
-            mc := add(mc, 0x20)
-
+            let cdc := _calldata
+            
+            // leave space for the length later
+            mc := add(mc, 0x40)
+            
             mstore(mc, mul(0xd7f31eb9, 0x100000000000000000000000000000000000000000000000000000000))
             mc := add(mc, 4)
-
+            
             mstore(mc, _destination)
             mc := add(mc, 0x20)
-
+            
             mstore(mc, _value)
             mc := add(mc, 0x20)
-
+            
+            mstore(mc, 0x60)
+            mc := add(mc, 0x20)
+            
+            let cdlength := mload(_calldata)
+            
             switch iszero(functionID)
             case 0 {
+                cdlength := add(cdlength, 4)
+                mstore(mc, cdlength)
+                mc := add(mc, 0x20)
                 mstore(mc, mul(functionID, 0x100000000000000000000000000000000000000000000000000000000))
+                cdlength := add(mc, cdlength)
                 mc := add(mc, 4)
             }
-
-            let cdlength := mload(_calldata)
-            _calldata := add(_calldata, 0x20)
-
-            cdlength := add(mc, cdlength)
-
+            default {
+                mstore(mc, cdlength)
+                mc := add(mc, 0x20)
+                cdlength := add(mc, cdlength)
+            }
+            
             for {} lt(mc, cdlength) {
                 mc := add(mc, 0x20)
-                _calldata := add(_calldata, 0x20)
             } {
+                _calldata := add(_calldata, 0x20)
                 mstore(mc, mload(_calldata))
             }
-
+            
             // set the length
-            mstore(data, sub(mc, add(data, 0x20)))
-            mstore(add(data, 0x20), sub(mc, data))
-
+            let length := sub(cdlength, add(data, 0x20))
+            mstore(data, length)
+            mstore(add(data, 0x20), sub(length, 0x20))
+            
             // set the free-memory pointer to the right address
-            mstore(0x40, mc)
+            mstore(0x40, cdlength)
         }
-
+        
         return data;
     }
 
